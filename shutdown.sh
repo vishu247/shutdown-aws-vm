@@ -15,7 +15,7 @@ aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
 aws configure set region "$AWS_REGION"
 
 # Describe instances with the specified region and tags
-instances=$(aws ec2 describe-instances --region ${REGION} --query "Reservations[*].Instances[*].[InstanceId,InstanceType,State.Name,Tags[?Key=='Name'].Value|[0],Tags[?Key=='${TAG_KEY_1}'].Value|[0],Tags[?Key=='${TAG_KEY_2}'].Value|[0]]" --output json)
+instances=$(aws ec2 describe-instances --region ${AWS_REGION} --query "Reservations[*].Instances[*].[InstanceId,InstanceType,State.Name,Tags[?Key=='Name'].Value|[0],Tags[?Key=='${TAG_KEY_1}'].Value|[0],Tags[?Key=='${TAG_KEY_2}'].Value|[0]]" --output json)
 
 # Iterate through each instance
 echo "${instances}" | jq -c '.[][]' | while read -r instance; do
@@ -30,7 +30,7 @@ echo "${instances}" | jq -c '.[][]' | while read -r instance; do
     if [ "${auto_shutdown_tag}" == "${TAG_VALUE_1}" ] && [ "${pause_shutdown_tag}" != "${TAG_VALUE_2}" ]; then
         # If the instance is running, stop it
         if [ "${instance_state}" == "running" ]; then
-            aws ec2 stop-instances --region ${REGION} --instance-ids "${instance_id}"
+            aws ec2 stop-instances --region ${AWS_REGION} --instance-ids "${instance_id}"
             echo "Stopped EC2 instance ${instance_name} (${instance_id}, ${instance_type})"
         else
             # If instance is already stopped in state, then skip the stop action.
@@ -45,3 +45,4 @@ echo "${instances}" | jq -c '.[][]' | while read -r instance; do
     fi
     echo "============================================================================================================================================="
 done
+
